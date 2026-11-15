@@ -611,7 +611,7 @@ body.viewonly .add-btn,body.viewonly #bnav-add,body.viewonly .edit-btn,body.view
 <div class="ov" id="prep-overlay"><div class="ov-box" style="max-width:720px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div class="modal-title">Prep List: <span id="prep-date"></span></div><button class="modal-close noprint" id="prep-close">✕</button></div>
 <div class="noprint" style="margin-bottom:10px"><select class="field-select" id="prep-rest" style="padding:9px 14px;font-weight:700"></select></div>
-<div class="noprint" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"><button class="fchip ptab" data-t="daily">Daily prep</button><button class="fchip ptab" data-t="weekly">Weekly specials</button><button class="fchip ptab" data-t="order">Ingredient totals</button><button class="fchip ptab" data-t="history">History</button></div>
+<div class="noprint" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"><button class="fchip ptab" data-t="daily">Daily prep</button><button class="fchip ptab" data-t="weekly">Weekly specials</button><button class="fchip ptab" data-t="order">Ingredient totals</button><button class="fchip ptab" data-t="history">History</button><button class="fchip" id="prep-edit" style="margin-left:auto">✏️ Edit list</button></div>
 <div id="prep-body"></div>
 <div class="noprint" style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-primary" id="prep-print" style="flex:1">🖨 Print</button><button class="btn btn-secondary" id="prep-copy" style="flex:1">Copy as text</button></div></div></div>
 <!-- RESTAURANT MANAGER -->
@@ -1362,32 +1362,67 @@ let prepTab="daily",prepSt={},prepRest="seahorse";
 const PREPS={seahorse:{groups:PREP,tab2:{label:"Weekly specials",kind:"specials"}},
  driftwood:{groups:[["Breakfast & brunch", ["Bircher Muesli", "Toasted Muesli", "Pancake Mix", "French Toast Mix", "Hollandaise"]], ["Stocks, bases & pasta", ["Vegetable Stock", "Fish Brine", "Beef Brine", "Pickling Syrup", "Pasta Dough", "Gnocchi"]], ["Sauces & dressings", ["Garlic Aioli", "French Dressing", "Salad Cream", "Tahini Dressing", "Spicy Coconut Dressing", "Honey Sesame Dressing", "Carpaccio Dressing", "Citrus and Hazelnut Dressing", "Nahm Jim", "Three Flavoured Sauce", "Barbeque Sauce", "Hot Sauce for Wings", "Romesco Sauce", "Salsa Verde", "Tomato Fondant", "Café de Paris Butter"]], ["Dips, sides & vegetables", ["Hazelnut Ajo Blanco (Dip)", "Melitzano", "Pea Puree", "Green Pea Crush", "Peperonata", "Baked Beans", "Risotto", "Basmati Rice"]], ["Charcuterie & cold", ["Chicken Liver Parfait", "Country Terrine", "Fish Pate", "Smoked Beef Pastrami"]], ["Bakery & desserts", ["Bread", "English Muffins", "Banana Bread", "Corn Bread", "Pizza Base", "House Crackers", "Crème Brulee", "Crème Caramel", "Buttermilk Panna Cotta", "Brown Sugar Cheesecake", "Chocolate Fondant Puddings", "Lemon Curd"]]],tab2:{label:"Make ahead",kind:"lead",items:[["Bircher Muesli", "Soak overnight before serving"], ["Chicken Liver Parfait", "Soak the livers in milk 4 hours to overnight. Press until cold and set"], ["Country Terrine", "Marinate the pork overnight. Press after cooking"], ["Smoked Beef Pastrami", "Brine 3-4 days, dry overnight, then smoke"], ["Nahm Jim", "Best infused overnight"], ["Buttermilk Panna Cotta", "Set overnight in the fridge"], ["Crème Brulee", "Chill until set firm"], ["Brown Sugar Cheesecake", "Set in the fridge before portioning"], ["Fish Brine", "Brine fish 30 minutes to 2 hours, rinse and pat dry"]]}},
  myown:{groups:[["Mains",["Butter Chicken (Murgh Makhani)"]]],tab2:{label:"Make ahead",kind:"lead",items:[["Butter Chicken (Murgh Makhani)","Marinate the chicken at least 30 minutes. Overnight is best"]]}}};
-function prepCfg(){return PREPS[prepRest]||{groups:[],tab2:{label:"Make ahead",kind:"lead",items:[]}};}
+let prepEdit=false,resetArm=false;
+function prepDefaults(rest){const c=PREPS[rest]; if(!c) return {groups:[],specials:null,lead:[]};
+  return {groups:JSON.parse(JSON.stringify(c.groups)),specials:c.tab2.kind==="specials"?JSON.parse(JSON.stringify(SPECIALS)):null,lead:c.tab2.kind==="lead"?JSON.parse(JSON.stringify(c.tab2.items)):null};}
+function prepData(rest){try{const raw=localStorage.getItem("chefbook_prepcfg_"+rest); if(raw) return JSON.parse(raw);}catch(e){} return prepDefaults(rest);}
+function savePrepData(d){try{localStorage.setItem("chefbook_prepcfg_"+prepRest,JSON.stringify(d));}catch(e){}}
+function specialsFor(rest){return prepData(rest).specials||[];}
+function prepCfg(){const d=prepData(prepRest); return {groups:d.groups||[],specials:d.specials,tab2:{label:d.specials?"Weekly specials":"Make ahead",kind:d.specials?"specials":"lead",items:d.lead||[]}};}
 function dayKey(){return new Date().toLocaleDateString("en-CA");}
-function loadPrep(){try{prepSt=JSON.parse(localStorage.getItem("chefbook_prep_"+prepRest+"_"+dayKey()))||{};}catch(e){prepSt={};}}
+function loadPrep(){prepEdit=false;try{prepSt=JSON.parse(localStorage.getItem("chefbook_prep_"+prepRest+"_"+dayKey()))||{};}catch(e){prepSt={};}}
 function savePrep(){try{localStorage.setItem("chefbook_prep_"+prepRest+"_"+dayKey(),JSON.stringify(prepSt));}catch(e){}}
 function loadExtra(){try{return JSON.parse(localStorage.getItem("chefbook_prepx_"+prepRest))||[];}catch(e){return [];}}
 function saveExtra(a){try{localStorage.setItem("chefbook_prepx_"+prepRest,JSON.stringify(a));}catch(e){}}
 function findRec(n){return allRecipes().find(r=>recRest(r)===prepRest&&r.name===n);}
-function tomSpecial(){const t=(new Date().getDay()+1)%7;return SPECIALS.find(s=>s.d===t);}
+function tomSpecial(){const t=(new Date().getDay()+1)%7;return specialsFor("seahorse").find(s=>s.d===t);}
 function prow(k,t){return '<label class="prow"><input type="checkbox" data-k="'+esc(k)+'"'+(prepSt[k]?' checked':'')+'><span style="flex:1;font-size:13px">'+esc(t)+'</span></label>';}
 function pitem(n,extra,i){const r=findRec(n),k=(extra?"x:":"d:")+n;
   return '<div class="prow"><input type="checkbox" data-k="'+esc(k)+'"'+(prepSt[k]?' checked':'')+'><span class="pname'+((r||extra)?'':' missing')+'"'+(r?' data-open="'+esc(n)+'"':'')+'>'+esc(n)+'</span><input class="field-input pbatch" type="number" min="0" step="any" data-b="'+esc(n)+'" placeholder="x" title="Batches to make" value="'+esc(prepSt["b:"+n]||"")+'"><input class="field-input pnote" data-n="'+esc(n)+'" placeholder="note" value="'+esc(prepSt["n:"+n]||"")+'">'+(extra?'<button class="remove-row noprint" data-rm="'+i+'">×</button>':'')+'</div>';}
+function editDaily(d){
+  return '<div class="allergen-note" style="margin:0 0 8px">Type over a name to rename it. Empty the name or tap × to delete it. This changes this restaurant only.</div>'
+  +d.groups.map((g,gi)=>'<div class="spcard"><div style="display:flex;gap:6px;margin-bottom:6px"><input class="field-input" style="font-weight:700" data-ed="gname" data-g="'+gi+'" value="'+esc(g[0])+'"><button class="del-btn" data-act="delGroup" data-g="'+gi+'" title="Delete group">🗑</button></div>'
+    +g[1].map((n,i)=>'<div class="prow"><input class="field-input" data-ed="item" data-g="'+gi+'" data-i="'+i+'" value="'+esc(n)+'"><button class="remove-row" data-act="delItem" data-g="'+gi+'" data-i="'+i+'">×</button></div>').join("")
+    +'<div style="display:flex;gap:6px;margin-top:6px"><input class="field-input" data-ed="newitem" data-g="'+gi+'" placeholder="+ Add an item"><button class="btn btn-secondary" data-act="addItem" data-g="'+gi+'">Add</button></div></div>').join("")
+  +'<div style="display:flex;gap:6px"><input class="field-input" data-ed="newgroup" placeholder="+ New group (for example Desserts)"><button class="btn btn-secondary" data-act="addGroup">Add</button></div>';
+}
+function editSpecials(d){
+  const days=i=>DAYN.map((n,x)=>'<option value="'+x+'"'+(x===i?' selected':'')+'>'+n+'</option>').join("");
+  const tasks=(s,si,w)=>s[w].map((t,i)=>'<div class="prow"><input class="field-input" data-ed="task" data-s="'+si+'" data-w="'+w+'" data-i="'+i+'" value="'+esc(t)+'"><button class="remove-row" data-act="delTask" data-s="'+si+'" data-w="'+w+'" data-i="'+i+'">×</button></div>').join("")
+    +'<div style="display:flex;gap:6px;margin-top:4px"><input class="field-input" data-ed="newtask" data-s="'+si+'" data-w="'+w+'" placeholder="+ Add a task"><button class="btn btn-secondary" data-act="addTask" data-s="'+si+'" data-w="'+w+'">Add</button></div>';
+  return '<div class="allergen-note" style="margin:0 0 8px">Change the day, name, price or tasks. The "Day before" tasks drive the tomorrow reminder.</div>'
+  +d.specials.map((s,si)=>'<div class="spcard"><div style="display:flex;gap:6px;margin-bottom:6px"><select class="field-select" style="width:auto" data-ed="sp" data-f="d" data-s="'+si+'">'+days(s.d)+'</select><input class="field-input" style="font-weight:700" data-ed="sp" data-f="name" data-s="'+si+'" value="'+esc(s.name)+'"><button class="del-btn" data-act="delSpecial" data-s="'+si+'" title="Delete special">🗑</button></div>'
+    +'<div style="display:flex;gap:6px;margin-bottom:6px"><input class="field-input" data-ed="sp" data-f="price" data-s="'+si+'" value="'+esc(s.price)+'" placeholder="Price"><input class="field-input" data-ed="sp" data-f="desc" data-s="'+si+'" value="'+esc(s.desc)+'" placeholder="Description"></div>'
+    +'<div class="section-label" style="margin:8px 0 4px">Day before</div>'+tasks(s,si,"before")+'<div class="section-label" style="margin:8px 0 4px">On the day</div>'+tasks(s,si,"on")+'</div>').join("")
+  +'<button class="btn btn-secondary" data-act="addSpecial" style="width:100%">+ Add a weekly special</button>';
+}
+function editLead(d){
+  return '<div class="allergen-note" style="margin:0 0 8px">Items that need time. Edit the name and the note, or delete them.</div>'
+  +(d.lead||[]).map((it,i)=>'<div class="prow"><input class="field-input" data-ed="lead" data-f="0" data-i="'+i+'" value="'+esc(it[0])+'"><input class="field-input" data-ed="lead" data-f="1" data-i="'+i+'" value="'+esc(it[1])+'" placeholder="Note"><button class="remove-row" data-act="delLead" data-i="'+i+'">×</button></div>').join("")
+  +'<button class="btn btn-secondary" data-act="addLead" style="width:100%;margin-top:8px">+ Add an item</button>';
+}
 function renderPrep(){
   const cfg=prepCfg(), sel=document.getElementById("prep-rest");
   sel.innerHTML=allRests().map(r=>'<option value="'+esc(r.id)+'">'+esc(r.name)+'</option>').join(""); sel.value=prepRest;
   document.getElementById("prep-date").textContent=restName(prepRest)+" · "+new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"short"});
   document.querySelectorAll(".ptab").forEach(b=>{b.classList.toggle("active",b.dataset.t===prepTab); if(b.dataset.t==="weekly") b.textContent=cfg.tab2.label;});
+  const eb=document.getElementById("prep-edit"); eb.style.display=(prepTab==="order"||prepTab==="history")?"none":""; eb.textContent=prepEdit?"✔ Done editing":"✏️ Edit list";
   let h="";
-  if(prepTab==="daily"){
-    if(!cfg.groups.length) h+='<div class="allergen-note">No prep list set up for this restaurant yet. Add your own items below.</div>';
-    h+='<div class="allergen-note" style="margin:0 0 6px">Tick each item when it is done and write the amount you need. It resets every day.</div>';
+  if(prepEdit&&(prepTab==="daily"||prepTab==="weekly")){
+    const d=prepData(prepRest);
+    h=prepTab==="daily"?editDaily(d):(d.specials?editSpecials(d):editLead(d));
+    h+='<button class="btn btn-secondary" data-act="resetCfg" style="width:100%;margin-top:14px">Reset to the suggested list</button>';
+  } else if(prepTab==="daily"){
+    if(!cfg.groups.length) h+='<div class="allergen-note">No prep list set up for this restaurant yet. Tap Edit list to build one, or add items below.</div>';
+    h+='<div class="allergen-note" style="margin:0 0 6px">Tick each item when it is done. The small box is how many batches to make. It resets every day.</div>';
     cfg.groups.forEach(g=>{h+='<div class="section-label" style="margin:12px 0 6px">'+esc(g[0])+'</div>'+g[1].map(n=>pitem(n,false)).join("");});
     h+='<div class="section-label" style="margin:12px 0 6px">My items</div>'+loadExtra().map((n,i)=>pitem(n,true,i)).join("")
       +'<div class="noprint" style="display:flex;gap:6px;margin-top:8px"><input class="field-input" id="prep-extra" placeholder="Add your own prep item"><button class="btn btn-secondary" data-add="1">Add</button></div>';
-  } else if(prepTab==="order"){ h=orderHtml(); } else if(prepTab==="history"){ h=historyHtml(); } else if(cfg.tab2.kind==="specials"){
+  } else if(prepTab==="order"){ h=orderHtml(); } else if(prepTab==="history"){ h=historyHtml(); }
+  else if(cfg.tab2.kind==="specials"){
     const t=(new Date().getDay()+1)%7;
-    SPECIALS.slice().sort((a,b)=>((a.d-t+7)%7)-((b.d-t+7)%7)).forEach(s=>{const tom=s.d===t, prev=DAYN[(s.d+6)%7];
+    if(!cfg.specials.length) h+='<div class="allergen-note">No weekly specials yet. Tap Edit list to add one.</div>';
+    cfg.specials.slice().sort((a,b)=>((a.d-t+7)%7)-((b.d-t+7)%7)).forEach(s=>{const tom=s.d===t, prev=DAYN[(s.d+6)%7];
       h+='<div class="spcard'+(tom?' tom':'')+'"><div class="sphead" style="display:flex;justify-content:space-between;gap:8px"><b>'+DAYN[s.d]+": "+esc(s.name)+'</b><span>'+esc(s.price)+'</span></div><div class="allergen-note">'+esc(s.desc)+'</div>'
         +(tom?'<div class="tomtag">🔔 TOMORROW: do the day-before prep today</div>':'')
         +'<div class="section-label" style="margin:8px 0 4px">Day before ('+prev+')</div>'+s.before.map((x,i)=>prow("w:"+s.d+":b"+i,x)).join("")
@@ -1398,6 +1433,38 @@ function renderPrep(){
   }
   document.getElementById("prep-body").innerHTML=h;
 }
+document.getElementById("prep-edit").onclick=()=>{prepEdit=!prepEdit;renderPrep();};
+(function(){const po=document.getElementById("prep-overlay");
+  function edit(fn){const d=prepData(prepRest); fn(d); savePrepData(d);}
+  po.addEventListener("change",e=>{const t=e.target,ed=t.dataset&&t.dataset.ed; if(!ed) return;
+    const g=+t.dataset.g,i=+t.dataset.i,si=+t.dataset.s,v=t.value.trim(); let removed=false;
+    edit(d=>{
+      if(ed==="item"){ if(v) d.groups[g][1][i]=v; else {d.groups[g][1].splice(i,1);removed=true;} }
+      else if(ed==="gname"){ if(v) d.groups[g][0]=v; }
+      else if(ed==="sp"){ const f=t.dataset.f; d.specials[si][f]=(f==="d")?+t.value:t.value; }
+      else if(ed==="task"){ const w=t.dataset.w; if(v) d.specials[si][w][i]=v; else {d.specials[si][w].splice(i,1);removed=true;} }
+      else if(ed==="lead"){ d.lead[i][+t.dataset.f]=t.value; }
+    });
+    if(removed) renderPrep(); });
+  po.addEventListener("click",e=>{const b=e.target.closest("[data-act]"); if(!b) return;
+    const a=b.dataset.act,g=+b.dataset.g,i=+b.dataset.i,si=+b.dataset.s,w=b.dataset.w;
+    if(a==="resetCfg"){ if(!resetArm){resetArm=true;b.textContent="Tap again to confirm";setTimeout(()=>{resetArm=false;},4000);return;}
+      resetArm=false; try{localStorage.removeItem("chefbook_prepcfg_"+prepRest);}catch(x){} toast("Reset to the suggested list"); renderPrep(); return; }
+    const val=sel=>{const el=po.querySelector(sel); const v=el?el.value.trim():""; if(el) el.value=""; return v;};
+    edit(d=>{
+      if(a==="delItem") d.groups[g][1].splice(i,1);
+      else if(a==="delGroup") d.groups.splice(g,1);
+      else if(a==="addItem"){const v=val('[data-ed="newitem"][data-g="'+g+'"]'); if(v) d.groups[g][1].push(v);}
+      else if(a==="addGroup"){const v=val('[data-ed="newgroup"]'); if(v) d.groups.push([v,[]]);}
+      else if(a==="delSpecial") d.specials.splice(si,1);
+      else if(a==="addSpecial") d.specials.push({d:1,name:"New special",price:"",desc:"",before:[],on:[]});
+      else if(a==="delTask") d.specials[si][w].splice(i,1);
+      else if(a==="addTask"){const v=val('[data-ed="newtask"][data-s="'+si+'"][data-w="'+w+'"]'); if(v) d.specials[si][w].push(v);}
+      else if(a==="delLead") d.lead.splice(i,1);
+      else if(a==="addLead") d.lead.push(["New item",""]);
+    });
+    renderPrep(); });
+})();
 function openPrep(tab,rest){prepTab=tab||"daily";prepRest=rest||((state.rest&&state.rest!=="all")?state.rest:(defRest||"seahorse"));loadPrep();renderPrep();document.getElementById("prep-overlay").classList.add("open");}
 function openByName(n){const r=findRec(n); if(!r) return; document.getElementById("prep-overlay").classList.remove("open");
   state.rest=prepRest;state.cat="all";state.course="";state.sub="";state.search="";state.selected=r.id||r._docId;update(); if(isMobile()) openMobileSheet(r,false);}
