@@ -602,11 +602,22 @@ body.viewonly .add-btn,body.viewonly #bnav-add,body.viewonly .edit-btn,body.view
 </div>
 
 <div class="ov" id="pin-overlay"><div class="ov-box" style="max-width:340px"><div class="modal-title" id="pin-title">PIN</div><div class="modal-sub" style="margin:4px 0 12px">Locks editing so staff can only view. This is a simple lock, not high security.</div><input class="field-input" id="pin-input" type="password" inputmode="numeric" placeholder="PIN (4+ digits)"><div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-primary" id="pin-ok" style="flex:1">OK</button><button class="btn btn-secondary" id="pin-cancel">Cancel</button></div><button class="btn btn-danger" id="pin-remove" style="width:100%;margin-top:8px;display:none">Remove PIN</button></div></div>
-<div class="ov" id="bk-overlay"><div class="ov-box"><div class="modal-title">Backup</div><div class="modal-sub" style="margin:4px 0 10px">Your added recipes, edits, notes and allergen checks. Copy and save it somewhere safe.</div><textarea class="field-textarea" id="bk-text" style="min-height:220px;font-size:11px" readonly></textarea><div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-primary" id="bk-copy" style="flex:1">Copy</button><button class="btn btn-primary" id="bk-dl" style="flex:1">Download file</button><button class="btn btn-secondary" id="bk-close">Close</button></div>
-<div class="section-label" style="margin:16px 0 6px">Restore from a backup</div>
-<textarea class="field-textarea" id="rs-text" placeholder="Paste a backup here, or choose a file" style="min-height:80px;font-size:11px"></textarea>
-<input type="file" id="rs-file" accept=".json,application/json" style="margin-top:8px;font-size:12px">
-<button class="btn btn-danger" id="rs-go" style="width:100%;margin-top:8px">Restore (adds anything that is missing)</button></div></div>
+<div class="ov" id="bk-overlay"><div class="ov-box">
+<div style="display:flex;justify-content:space-between;align-items:center"><div class="modal-title">Backup &amp; restore</div><button class="modal-close" id="bk-close">✕</button></div>
+<div class="modal-sub" id="bk-last" style="margin:6px 0 12px">No backup yet</div>
+<button class="btn btn-primary" id="bk-share" style="width:100%;padding:14px">Back up now (share to Keep, Notes, Files…)</button>
+<button class="btn btn-secondary" id="rs-paste" style="width:100%;padding:14px;margin-top:10px">Paste &amp; restore from clipboard</button>
+<div style="display:flex;gap:10px;margin-top:10px"><button class="btn btn-primary" id="bk-dl" style="flex:1;padding:14px">Save backup file</button><button class="btn btn-secondary" id="rs-open" style="flex:1;padding:14px">Open backup file</button></div>
+<input type="file" id="rs-file" accept=".json,application/json,text/plain" style="display:none">
+<div id="bpm" class="modal-sub" style="margin:10px 0 0;min-height:18px;color:var(--accent)"></div>
+<div id="bpend" style="display:none;margin-top:10px;padding:12px;background:rgba(244,163,90,.12);border:1px solid var(--accent);border-radius:10px"><div id="bptx" style="font-size:13px;margin-bottom:10px;line-height:1.5"></div><div style="display:flex;gap:8px"><button class="btn btn-primary" id="bpy" style="flex:1">Restore</button><button class="btn btn-secondary" id="bpn" style="flex:1">Cancel</button></div></div>
+<div class="modal-sub" style="margin:14px 0 6px">Backup text (copy this if sharing doesn't work)</div>
+<textarea class="field-textarea" id="bk-text" readonly placeholder="Tap Back up now to fill this in" style="min-height:90px;font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace"></textarea>
+<button class="btn btn-secondary" id="bk-copy" style="width:100%;margin-top:8px;padding:12px">Copy backup text</button>
+<div class="modal-sub" style="margin:14px 0 6px">Restore from text: paste a backup here</div>
+<textarea class="field-textarea" id="rs-text" placeholder="Paste your backup text here" style="min-height:80px;font-size:11px"></textarea>
+<button class="btn btn-danger" id="rs-go" style="width:100%;margin-top:8px;padding:12px">Restore (adds anything that is missing)</button>
+</div></div>
 <div class="ov" id="al-overlay"><div class="ov-box" style="max-width:380px"><div class="modal-title">Confirm allergens</div><div class="modal-sub" style="margin:4px 0 10px">Tick what this recipe really contains. It replaces the auto-detected tags.</div><div id="al-chips"></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-primary" style="flex:1" onclick="saveAl(false)">Save ✔</button><button class="btn btn-secondary" onclick="saveAl(true)">Clear</button><button class="btn btn-secondary" onclick="document.getElementById('al-overlay').classList.remove('open')">Cancel</button></div></div></div>
 <div class="ov" id="prep-overlay"><div class="ov-box" style="max-width:720px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div class="modal-title">Prep List: <span id="prep-date"></span></div><button class="modal-close noprint" id="prep-close">✕</button></div>
@@ -1514,18 +1525,17 @@ function historyHtml(){
     return '<div class="spcard"><b>'+esc(d)+'</b> <span class="allergen-note">'+done.length+' done</span>'+done.map(n=>'<div style="font-size:12px;margin-top:3px">✓ '+esc(n)+(st["b:"+n]?' x'+esc(st["b:"+n]):'')+(st["n:"+n]?' ('+esc(st["n:"+n])+')':'')+'</div>').join("")+'</div>';}).join("");
 }
 function markBackup(){try{localStorage.setItem("chefbook_lastbackup",String(Date.now()));}catch(e){}}
+function localSettings(){const o={}; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i); if(/^chefbook_(prepcfg_|prep_|separate)/.test(k)) o[k]=localStorage.getItem(k);} return o;}
 function backupData(){
   const px={}; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i); if(k.startsWith("chefbook_prepx_")) px[k]=localStorage.getItem(k);}
   return {app:"chefs-recipe-book",version:2,exportedAt:new Date().toISOString(),restaurants:customRests.map(r=>({id:r.id,name:r.name})),recipes:customRecipes.map(r=>toDb(r)),
-    editedOriginals:Object.fromEntries(Object.entries(edits).map(([k,v])=>[k,toDb(v)])),myNotes,allergenChecks:checks,favourites:[...favs],prepItems:px,mainPicks:mainPick,defaultRestaurant:defRest};
+    editedOriginals:Object.fromEntries(Object.entries(edits).map(([k,v])=>[k,toDb(v)])),myNotes,allergenChecks:checks,favourites:[...favs],prepItems:px,mainPicks:mainPick,defaultRestaurant:defRest,settings:localSettings()};
 }
 document.getElementById("bk-open").onclick=()=>{document.getElementById("bk-text").value=JSON.stringify(backupData(),null,1);document.getElementById("bk-overlay").classList.add("open");};
 document.getElementById("bk-copy").onclick=()=>{const t=document.getElementById("bk-text");t.select();let ok=false;try{ok=document.execCommand("copy");}catch(e){} if(ok)markBackup(); toast(ok?"Copied. Paste it into a note or email":"Select all and copy");};
 document.getElementById("bk-dl").onclick=()=>{try{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([document.getElementById("bk-text").value],{type:"application/json"}));a.download="recipe-book-backup-"+dayKey()+".json";document.body.appendChild(a);a.click();a.remove();markBackup();toast("Backup file saved");}catch(e){toast("Could not save a file. Use Copy instead");}};
 document.getElementById("rs-file").onchange=e=>{const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{document.getElementById("rs-text").value=r.result;toast("File loaded. Tap Restore");}; r.readAsText(f);};
-document.getElementById("rs-go").onclick=async()=>{
-  let d; try{d=JSON.parse(document.getElementById("rs-text").value);}catch(e){toast("That is not a valid backup");return;}
-  if(!d||d.app!=="chefs-recipe-book"){toast("This is not a recipe book backup");return;}
+async function applyBackup(d){
   const n={rec:0,edit:0,note:0,chk:0};
   for(const x of d.restaurants||[]){if(x&&x.name&&!allRests().some(y=>y.id===x.id||y.name.toLowerCase()===String(x.name).toLowerCase())){try{await db.collection("restaurants").add({id:x.id,name:x.name});}catch(e){}}}
   for(const r of d.recipes||[]){if(!r||customRecipes.some(c=>c.id===r.id)) continue; try{await db.collection("recipes").add(toDb(fromDb(r)));n.rec++;}catch(e){}}
@@ -1534,12 +1544,63 @@ document.getElementById("rs-go").onclick=async()=>{
   for(const [id,v] of Object.entries(d.allergenChecks||{})){if(!checks[id]){checks[id]=v;try{await db.doc("checks/"+id).set(v);}catch(e){}n.chk++;}}
   (d.favourites||[]).forEach(f=>favs.add(f)); saveFavs();
   Object.entries(d.prepItems||{}).forEach(([k,v])=>{if(k.startsWith("chefbook_prepx_")&&!localStorage.getItem(k)){try{localStorage.setItem(k,v);}catch(e){}}});
+  Object.entries(d.settings||{}).forEach(([k,v])=>{if(/^chefbook_(prepcfg_|prep_|separate)/.test(k)&&localStorage.getItem(k)===null){try{localStorage.setItem(k,v);}catch(e){}}});
   Object.assign(mainPick,d.mainPicks||{}); try{localStorage.setItem("chefbook_main",JSON.stringify(mainPick));}catch(e){}
   if(!defRest&&d.defaultRestaurant){defRest=d.defaultRestaurant;try{localStorage.setItem("chefbook_defrest",defRest);}catch(e){}}
   saveEditsLocal(); saveNotesLocal();
   document.getElementById("bk-overlay").classList.remove("open"); update();
-  toast("Restored: "+n.rec+" recipes, "+n.edit+" edits, "+n.note+" notes, "+n.chk+" allergen checks");};
+  toast("Restored: "+n.rec+" recipes, "+n.edit+" edits, "+n.note+" notes, "+n.chk+" allergen checks");}
 setTimeout(()=>{try{const last=+localStorage.getItem("chefbook_lastbackup")||0; const has=customRecipes.length||Object.keys(edits).length||Object.keys(myNotes).length||Object.keys(checks).length; if(has&&Date.now()-last>7*864e5) toast("Backup reminder: ⚙ Manage, then 💾 Backup");}catch(e){}},4500);
+function bmsg(t){const el=document.getElementById("bpm"); if(el) el.textContent=t; toast(t);}
+function bkJSON(){return JSON.stringify(backupData());}
+function bkText(){const o=backupData(), n=(o.recipes||[]).length+Object.keys(o.editedOriginals||{}).length+Object.keys(o.myNotes||{}).length+Object.keys(o.allergenChecks||{}).length+(o.restaurants||[]).length;
+  const when=new Date().toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"})+", "+new Date().toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
+  const t="Recipe book backup — "+when+" — "+n+" "+(n===1?"entry":"entries")+"\n"+JSON.stringify(o); document.getElementById("bk-text").value=t; return t;}
+function bkFileName(){return "recipe-book-backup-"+dayKey()+".json";}
+function refreshBk(){const l=+localStorage.getItem("chefbook_lastbackup")||0, el=document.getElementById("bk-last");
+  if(!l){el.textContent="No backup yet";return;}
+  const days=Math.floor((Date.now()-l)/864e5);
+  el.textContent="Last backup: "+new Date(l).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"})+" ("+(days<1?"today":days+(days===1?" day ago":" days ago"))+")";}
+function fbCopy(t,cb){const a=document.getElementById("bk-text"); a.removeAttribute("readonly"); a.value=t; a.focus(); a.select(); try{a.setSelectionRange(0,t.length);}catch(e){}
+  let ok=false; try{ok=document.execCommand("copy");}catch(e){} a.setAttribute("readonly","");
+  if(ok){alert("Copied"); if(cb) cb(); return;} alert("Press and hold in the Backup text box, choose Select All, then Copy.");}
+function cp2(t,cb){try{navigator.clipboard.writeText(t).then(()=>{alert("Copied"); if(cb) cb();},()=>fbCopy(t,cb));}catch(e){fbCopy(t,cb);}}
+function doneBk(){markBackup();refreshBk();}
+function whyNoShare(e){
+  if(location.protocol==="file:") return "This is a file preview, not the website. Open the app from your GitHub link.";
+  if(window.top!==window.self) return "Sharing is blocked because this page is open inside another page (such as the Claude link). Open the app from your GitHub link or its Home Screen icon.";
+  if(!window.isSecureContext) return "Sharing needs a secure (https) page.";
+  if(!navigator.share) return "This browser has no share sheet.";
+  return "The share sheet failed ("+((e&&e.name)||"unknown error")+").";}
+function doBackup(){const j=bkText();
+  const fallback=(e)=>{bmsg(whyNoShare(e)+" The backup text was copied instead. Paste it into Notes or Keep. If it did not copy, tap Copy backup text below."); cp2(j,doneBk);};
+  if(navigator.share){navigator.share({title:"Recipe book backup "+dayKey(),text:j}).then(()=>{doneBk();bmsg("Backup shared. Make sure you saved it in Keep, Notes or Files.");}).catch(e=>{if(e&&e.name==="AbortError"){bmsg("Backup cancelled.");return;} fallback(e);});}
+  else fallback();}
+function dlFile(j){try{const b=new Blob([j],{type:"application/json"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=bkFileName();document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},1500);doneBk();bmsg("Backup file saved. Look in your Downloads or Files app.");}catch(e){bmsg("This view blocked saving a file. Use Back up now (text) instead.");}}
+function saveBkFile(){bkText(); const j=bkJSON(); let f=null; try{f=new File([j],bkFileName(),{type:"application/json"});}catch(e){}
+  if(f&&navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:"Recipe book backup"}).then(()=>{doneBk();bmsg("Backup file shared. Save it in Files or iCloud Drive.");}).catch(e=>{if(e&&e.name==="AbortError"){bmsg("Backup cancelled.");return;} dlFile(j);}); return;}
+  dlFile(j);}
+function parseBackup(raw){const a=raw.indexOf("{"), z=raw.lastIndexOf("}");
+  if(a<0||z<a) return {e:"No backup found. Copy the whole backup text first (it starts with { and ends with })."};
+  let o; try{o=JSON.parse(raw.slice(a,z+1).replace(/[\u201c\u201d]/g,'"'));}catch(e){return {e:"The backup text is damaged or cut off. Copy the whole note again."};}
+  if(!o||o.app!=="chefs-recipe-book") return {e:"That text isn't a recipe book backup."};
+  return {o:o};}
+let pendingBk=null;
+function bkStage(t){const p=parseBackup(t||""); if(p.e){bmsg(p.e);return;}
+  pendingBk=p.o; const o=p.o;
+  const cnt=[(o.recipes||[]).length+" recipes",Object.keys(o.editedOriginals||{}).length+" edited recipes",Object.keys(o.myNotes||{}).length+" notes",Object.keys(o.allergenChecks||{}).length+" allergen checks"].join(", ");
+  document.getElementById("bptx").textContent="Found a backup from "+(o.exportedAt?new Date(o.exportedAt).toLocaleDateString():"an unknown date")+": "+cnt+". Add anything that is missing from this phone?";
+  document.getElementById("bpend").style.display="block"; bmsg("Backup found. Tap Restore to add it.");}
+document.getElementById("bpy").onclick=()=>{const d=pendingBk; pendingBk=null; document.getElementById("bpend").style.display="none"; if(d) applyBackup(d);};
+document.getElementById("bpn").onclick=()=>{pendingBk=null; document.getElementById("bpend").style.display="none"; bmsg("Restore cancelled.");};
+document.getElementById("bk-open").onclick=()=>{bkText();refreshBk();document.getElementById("bpm").textContent=(location.protocol==="https:")?"":"⚠ This is a file preview, not the website. Sharing and the clipboard are blocked here. Open the app from your GitHub link.";document.getElementById("bpend").style.display="none";document.getElementById("bk-overlay").classList.add("open");};
+document.getElementById("bk-share").onclick=doBackup;
+document.getElementById("bk-copy").onclick=()=>{cp2(bkText(),doneBk);};
+document.getElementById("bk-dl").onclick=saveBkFile;
+document.getElementById("rs-open").onclick=()=>document.getElementById("rs-file").click();
+document.getElementById("rs-file").onchange=e=>{const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{bkStage(String(r.result));e.target.value="";}; r.readAsText(f);};
+document.getElementById("rs-paste").onclick=()=>{try{navigator.clipboard.readText().then(t=>{if(!t){bmsg("The clipboard is empty.");return;} bkStage(t);},()=>bmsg("The phone blocked reading the clipboard. Paste the text in the box below and tap Restore."));}catch(e){bmsg("The phone blocked reading the clipboard. Paste the text in the box below and tap Restore.");}};
+document.getElementById("rs-go").onclick=()=>bkStage(document.getElementById("rs-text").value);
 function filtered(){return filteredBase().filter(passesFilters).filter(passesCourse);}
 function filteredBase(){
   if(state.search){
