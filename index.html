@@ -209,6 +209,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .db-dot.ok{background:var(--green);}
 .db-dot.err{background:var(--red);}
 
+.share-btn{background:none;border:1px solid var(--border);cursor:pointer;font-size:12px;padding:4px 10px;border-radius:6px;font-family:inherit;color:var(--green);}
 /* ── Restaurants ── */
 .pbatch{width:54px !important;padding:5px 6px !important;font-size:12px !important;text-align:center;flex-shrink:0;}
 .prow{display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid var(--border);}
@@ -409,6 +410,7 @@ body.viewonly .add-btn,body.viewonly #bnav-add,body.viewonly .edit-btn,body.view
       </button>
       <div class="topbar-title" id="topbar-title">All Recipes</div>
       <span class="topbar-count" id="topbar-count"></span>
+      <button class="btn btn-secondary" id="share-btn" style="padding:8px 12px;font-size:12px;white-space:nowrap">📤 Share</button>
       <button class="btn btn-secondary" id="prep-btn" style="padding:8px 12px;font-size:12px;white-space:nowrap">📋 Prep</button>
       <button class="btn btn-secondary" id="lock-btn" style="padding:8px 12px;font-size:12px;white-space:nowrap">🔒 Set PIN</button>
       <button class="add-btn" id="add-btn">+ Add Recipe</button>
@@ -611,6 +613,9 @@ body.viewonly .add-btn,body.viewonly #bnav-add,body.viewonly .edit-btn,body.view
 <input type="file" id="rs-file" accept=".json,application/json,text/plain" style="display:none">
 <div id="bpm" class="modal-sub" style="margin:10px 0 0;min-height:18px;color:var(--accent)"></div>
 <div id="bpend" style="display:none;margin-top:10px;padding:12px;background:rgba(244,163,90,.12);border:1px solid var(--accent);border-radius:10px"><div id="bptx" style="font-size:13px;margin-bottom:10px;line-height:1.5"></div><div style="display:flex;gap:8px"><button class="btn btn-primary" id="bpy" style="flex:1">Restore</button><button class="btn btn-secondary" id="bpn" style="flex:1">Cancel</button></div></div>
+<div class="modal-sub" style="margin:16px 0 6px">Readable copy of recipes (to read without the app)</div>
+<select class="field-select" id="ex-rest" style="margin-bottom:8px"></select>
+<div style="display:flex;gap:8px"><button class="btn btn-secondary" id="ex-share" style="flex:1;padding:12px">Share recipes</button><button class="btn btn-secondary" id="ex-file" style="flex:1;padding:12px">Save as file</button></div>
 <div class="modal-sub" style="margin:14px 0 6px">Backup text (copy this if sharing doesn't work)</div>
 <textarea class="field-textarea" id="bk-text" readonly placeholder="Tap Back up now to fill this in" style="min-height:90px;font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace"></textarea>
 <button class="btn btn-secondary" id="bk-copy" style="width:100%;margin-top:8px;padding:12px">Copy backup text</button>
@@ -625,6 +630,15 @@ body.viewonly .add-btn,body.viewonly #bnav-add,body.viewonly .edit-btn,body.view
 <div class="noprint" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"><button class="fchip ptab" data-t="daily">Daily prep</button><button class="fchip ptab" data-t="weekly">Weekly specials</button><button class="fchip ptab" data-t="order">Ingredient totals</button><button class="fchip ptab" data-t="history">History</button><button class="fchip" id="prep-edit" style="margin-left:auto">✏️ Edit list</button></div>
 <div id="prep-body"></div>
 <div class="noprint" style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-primary" id="prep-print" style="flex:1">🖨 Print</button><button class="btn btn-secondary" id="prep-copy" style="flex:1">Copy as text</button></div></div></div>
+<div class="ov" id="sh-overlay"><div class="ov-box" style="max-width:560px">
+<div style="display:flex;justify-content:space-between;align-items:center"><div class="modal-title">Share recipes</div><button class="modal-close" id="sh-close">✕</button></div>
+<select class="field-select" id="sh-rest" style="margin:10px 0 8px;font-weight:700"></select>
+<div style="display:flex;gap:6px;margin-bottom:8px"><button class="fchip" id="sh-m-pick">Pick recipes</button><button class="fchip" id="sh-m-rest">Whole restaurant</button></div>
+<div id="sh-pick"><input class="field-input" id="sh-q" placeholder="Search recipes…" style="margin-bottom:6px"><div style="display:flex;gap:6px;margin-bottom:6px"><button class="btn btn-secondary" id="sh-all" style="padding:6px 10px;font-size:12px">Select all shown</button><button class="btn btn-secondary" id="sh-none" style="padding:6px 10px;font-size:12px">Clear</button></div><div id="sh-list" style="max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:4px 8px"></div></div>
+<label style="display:flex;gap:8px;align-items:center;margin:10px 0;font-size:13px"><input type="checkbox" id="sh-notes" style="width:18px;height:18px"> Include my own notes</label>
+<div id="sh-count" class="modal-sub" style="margin:4px 0 8px"></div>
+<div style="display:flex;gap:8px"><button class="btn btn-primary" id="sh-go" style="flex:1;padding:12px">Share</button><button class="btn btn-secondary" id="sh-copy" style="flex:1;padding:12px">Copy text</button><button class="btn btn-secondary" id="sh-file" style="flex:1;padding:12px">Save file</button></div>
+<div id="sh-msg" class="modal-sub" style="margin-top:8px;color:var(--accent)"></div></div></div>
 <!-- RESTAURANT MANAGER -->
 <div class="ov" id="rest-overlay">
   <div class="ov-box">
@@ -1593,7 +1607,7 @@ function bkStage(t){const p=parseBackup(t||""); if(p.e){bmsg(p.e);return;}
   document.getElementById("bpend").style.display="block"; bmsg("Backup found. Tap Restore to add it.");}
 document.getElementById("bpy").onclick=()=>{const d=pendingBk; pendingBk=null; document.getElementById("bpend").style.display="none"; if(d) applyBackup(d);};
 document.getElementById("bpn").onclick=()=>{pendingBk=null; document.getElementById("bpend").style.display="none"; bmsg("Restore cancelled.");};
-document.getElementById("bk-open").onclick=()=>{bkText();refreshBk();document.getElementById("bpm").textContent=(location.protocol==="https:")?"":"⚠ This is a file preview, not the website. Sharing and the clipboard are blocked here. Open the app from your GitHub link.";document.getElementById("bpend").style.display="none";document.getElementById("bk-overlay").classList.add("open");};
+document.getElementById("bk-open").onclick=()=>{fillEx();bkText();refreshBk();document.getElementById("bpm").textContent=(location.protocol==="https:")?"":"⚠ This is a file preview, not the website. Sharing and the clipboard are blocked here. Open the app from your GitHub link.";document.getElementById("bpend").style.display="none";document.getElementById("bk-overlay").classList.add("open");};
 document.getElementById("bk-share").onclick=doBackup;
 document.getElementById("bk-copy").onclick=()=>{cp2(bkText(),doneBk);};
 document.getElementById("bk-dl").onclick=saveBkFile;
@@ -1601,6 +1615,77 @@ document.getElementById("rs-open").onclick=()=>document.getElementById("rs-file"
 document.getElementById("rs-file").onchange=e=>{const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{bkStage(String(r.result));e.target.value="";}; r.readAsText(f);};
 document.getElementById("rs-paste").onclick=()=>{try{navigator.clipboard.readText().then(t=>{if(!t){bmsg("The clipboard is empty.");return;} bkStage(t);},()=>bmsg("The phone blocked reading the clipboard. Paste the text in the box below and tap Restore."));}catch(e){bmsg("The phone blocked reading the clipboard. Paste the text in the box below and tap Restore.");}};
 document.getElementById("rs-go").onclick=()=>bkStage(document.getElementById("rs-text").value);
+function fillEx(){const el=document.getElementById("ex-rest"); el.innerHTML='<option value="all">All restaurants</option>'+allRests().map(r=>'<option value="'+esc(r.id)+'">'+esc(r.name)+'</option>').join(""); el.value=(state.rest&&state.rest!=="all")?state.rest:"all";}
+function exportText(rid){
+  const list=allRecipes().filter(r=>rid==="all"||recRest(r)===rid);
+  let out="Recipe book — "+(rid==="all"?"all restaurants":restName(rid))+" — "+list.length+" recipes — "+new Date().toLocaleDateString()+"\n";
+  allRests().filter(x=>rid==="all"||x.id===rid).forEach(rs=>{
+    const rl=list.filter(r=>recRest(r)===rs.id); if(!rl.length) return;
+    out+="\n\n######## "+rs.name.toUpperCase()+" ########\n";
+    rl.forEach(r=>{out+="\n== "+r.name+" ==\n"+secOf(r)+(r.yield_?" | Yield: "+r.yield_:"")+"\n";
+      if((r.ing||[]).length) out+="Ingredients:\n"+r.ing.map(x=>"- "+x[0]+(x[1]?": "+x[1]:"")).join("\n")+"\n";
+      if((r.method||[]).length) out+="Method:\n"+r.method.map((m,i)=>(i+1)+". "+m).join("\n")+"\n";
+      if((r.notes||[]).length) out+="Notes:\n"+r.notes.map(n=>"- "+n).join("\n")+"\n";
+      if((r.variations||[]).length) out+="Variations:\n"+r.variations.map(n=>"- "+n).join("\n")+"\n";
+      const mn=myNotes[r.id||r._docId]||[]; if(mn.length) out+="My notes:\n"+mn.map(n=>"- "+n.text).join("\n")+"\n";});});
+  return out;}
+document.getElementById("ex-share").onclick=()=>{const t=exportText(document.getElementById("ex-rest").value), big=t.length>90000?" It is large, so Keep may refuse it. Choose one restaurant or use Save as file.":"";
+  if(navigator.share){navigator.share({title:"Recipes",text:t}).then(()=>bmsg("Recipes shared."+big)).catch(e=>{if(e&&e.name==="AbortError"){bmsg("Cancelled.");return;} cp2(t);bmsg(whyNoShare(e)+" The recipes were copied instead."+big);});}
+  else{cp2(t);bmsg(whyNoShare()+" The recipes were copied instead."+big);}};
+document.getElementById("ex-file").onclick=()=>{const t=exportText(document.getElementById("ex-rest").value), name="recipes-"+dayKey()+".txt"; let f=null; try{f=new File([t],name,{type:"text/plain"});}catch(e){}
+  const dl=()=>{try{const u=URL.createObjectURL(new Blob([t],{type:"text/plain"})),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},1500);bmsg("Recipe file saved. Look in your Downloads or Files app.");}catch(e){bmsg("This view blocked saving a file. Use Share recipes instead.");}};
+  if(f&&navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:"Recipes"}).then(()=>bmsg("Recipe file shared. Save it in Files.")).catch(e=>{if(e&&e.name==="AbortError"){bmsg("Cancelled.");return;} dl();});return;}
+  dl();};
+let shSel=new Set(),shMode="pick",shQ="";
+function shRecipes(){const rid=document.getElementById("sh-rest").value; return allRecipes().filter(r=>rid==="all"||recRest(r)===rid);}
+function shChosen(){const l=shRecipes(); return shMode==="rest"?l:l.filter(r=>shSel.has(r.id||r._docId));}
+function shCount(){const n=shChosen().length; document.getElementById("sh-count").textContent=n+" recipe"+(n===1?"":"s")+" will be shared";}
+function renderShare(){
+  document.getElementById("sh-m-pick").classList.toggle("active",shMode==="pick"); document.getElementById("sh-m-rest").classList.toggle("active",shMode==="rest");
+  document.getElementById("sh-pick").style.display=shMode==="pick"?"block":"none";
+  if(shMode==="pick"){const q=shQ.toLowerCase(), shown=shRecipes().filter(r=>!q||r.name.toLowerCase().includes(q));
+    document.getElementById("sh-list").innerHTML=shown.map(r=>{const id=r.id||r._docId; return '<label class="prow"><input type="checkbox" data-sh="'+esc(id)+'"'+(shSel.has(id)?' checked':'')+'><span style="flex:1;font-size:13px">'+esc(r.name)+'</span><span style="font-size:11px;color:var(--text3)">'+esc(secOf(r))+'</span></label>';}).join("")||'<div class="allergen-note">No recipes found.</div>';}
+  shCount();}
+function openShare(pre){
+  const el=document.getElementById("sh-rest"); el.innerHTML='<option value="all">All restaurants</option>'+allRests().map(r=>'<option value="'+esc(r.id)+'">'+esc(r.name)+'</option>').join("");
+  const pr=pre?allRecipes().find(r=>(r.id||r._docId)===pre):null;
+  el.value=pr?recRest(pr):((state.rest&&state.rest!=="all")?state.rest:"all");
+  shSel=new Set(pre?[pre]:[]); shMode="pick"; shQ=""; document.getElementById("sh-q").value=""; document.getElementById("sh-msg").textContent="";
+  renderShare(); document.getElementById("sh-overlay").classList.add("open");}
+function recipesText(list,withNotes){
+  let out=list.length===1?"":"Recipes — "+list.length+" — "+new Date().toLocaleDateString()+"\n";
+  const groups=allRests().filter(x=>list.some(r=>recRest(r)===x.id));
+  groups.forEach(rs=>{ if(groups.length>1) out+="\n######## "+rs.name.toUpperCase()+" ########\n";
+    list.filter(r=>recRest(r)===rs.id).forEach(r=>{ out+="\n== "+r.name+" ==\n"+secOf(r)+" | "+rs.name+(r.yield_?" | Yield: "+r.yield_:"")+"\n";
+      if((r.ing||[]).length){const t=tagSet(r), names=ALLERGENS.filter(a=>t.has(a.id)).map(a=>a.label).join(", ");
+        out+="Allergens ("+(checks[r.id||r._docId]?"chef-confirmed":"auto-detected, please check labels")+"): "+(names||"none detected")+"\n";
+        out+="Ingredients:\n"+r.ing.map(x=>"- "+x[0]+(x[1]?": "+x[1]:"")).join("\n")+"\n";}
+      if((r.method||[]).length) out+="Method:\n"+r.method.map((m,i)=>(i+1)+". "+m).join("\n")+"\n";
+      if((r.notes||[]).length) out+="Notes:\n"+r.notes.map(n=>"- "+n).join("\n")+"\n";
+      if((r.variations||[]).length) out+="Variations:\n"+r.variations.map(n=>"- "+n).join("\n")+"\n";
+      const mn=withNotes?(myNotes[r.id||r._docId]||[]):[]; if(mn.length) out+="My notes:\n"+mn.map(n=>"- "+n.text).join("\n")+"\n";});});
+  return out.trim()+"\n";}
+function shMsg(t){document.getElementById("sh-msg").textContent=t;toast(t);}
+function shText(){return recipesText(shChosen(),document.getElementById("sh-notes").checked);}
+document.getElementById("share-btn").onclick=()=>openShare();
+document.addEventListener("click",e=>{if(e.target.closest("#d-share,#ms-share")&&curRecipe) openShare(curRecipe.id||curRecipe._docId);});
+document.getElementById("sh-close").onclick=()=>document.getElementById("sh-overlay").classList.remove("open");
+document.getElementById("sh-overlay").addEventListener("click",e=>{if(e.target===e.currentTarget) e.currentTarget.classList.remove("open");});
+document.getElementById("sh-rest").onchange=()=>renderShare();
+document.getElementById("sh-m-pick").onclick=()=>{shMode="pick";renderShare();};
+document.getElementById("sh-m-rest").onclick=()=>{shMode="rest";renderShare();};
+document.getElementById("sh-q").oninput=e=>{shQ=e.target.value;renderShare();};
+document.getElementById("sh-all").onclick=()=>{const q=shQ.toLowerCase(); shRecipes().filter(r=>!q||r.name.toLowerCase().includes(q)).forEach(r=>shSel.add(r.id||r._docId)); renderShare();};
+document.getElementById("sh-none").onclick=()=>{shSel.clear();renderShare();};
+document.getElementById("sh-list").addEventListener("change",e=>{const id=e.target.dataset&&e.target.dataset.sh; if(!id) return; if(e.target.checked) shSel.add(id); else shSel.delete(id); shCount();});
+document.getElementById("sh-go").onclick=()=>{const l=shChosen(); if(!l.length){shMsg("Pick at least one recipe.");return;} const t=shText(), title=l.length===1?l[0].name:"Recipes";
+  if(navigator.share){navigator.share({title,text:t}).then(()=>shMsg("Shared.")).catch(e=>{if(e&&e.name==="AbortError"){shMsg("Cancelled.");return;} cp2(t);shMsg(whyNoShare(e)+" The text was copied instead.");});}
+  else{cp2(t);shMsg(whyNoShare()+" The text was copied instead.");}};
+document.getElementById("sh-copy").onclick=()=>{if(!shChosen().length){shMsg("Pick at least one recipe.");return;} cp2(shText());};
+document.getElementById("sh-file").onclick=()=>{const l=shChosen(); if(!l.length){shMsg("Pick at least one recipe.");return;} const t=shText(), name=(l.length===1?l[0].name.replace(/[^\w\- ]+/g,"").trim()||"recipe":"recipes")+"-"+dayKey()+".txt"; let f=null; try{f=new File([t],name,{type:"text/plain"});}catch(e){}
+  const dl=()=>{try{const u=URL.createObjectURL(new Blob([t],{type:"text/plain"})),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},1500);shMsg("File saved. Look in your Downloads or Files app.");}catch(e){shMsg("This view blocked saving a file. Use Share instead.");}};
+  if(f&&navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:name}).then(()=>shMsg("File shared.")).catch(e=>{if(e&&e.name==="AbortError"){shMsg("Cancelled.");return;} dl();});return;}
+  dl();};
 function filtered(){return filteredBase().filter(passesFilters).filter(passesCourse);}
 function filteredBase(){
   if(state.search){
@@ -1738,6 +1823,7 @@ function renderDetail(r){
     <div class="note-list">${r.variations.map(v=>`<div class="var-row">${v}</div>`).join("")}</div>`:"";
 
   const customBtns=`
+    <button class="share-btn" id="d-share">📤 Share</button>
     <button class="edit-btn" id="d-edit">✏️ Edit</button>`+(custom?`
     <button class="del-btn" id="d-del">🗑 Delete</button>`:(r._edited?`
     <button class="del-btn" id="d-revert" style="color:var(--text2)">↩ Restore original</button>`:""));
@@ -2153,6 +2239,7 @@ function openMobileSheet(r,keep){
 
   const customBtns = `
     <div style="display:flex;gap:10px;margin-top:20px;">
+      <button class="btn btn-secondary" style="flex:1;color:var(--green)" id="ms-share">📤 Share</button>
       <button class="btn btn-secondary" style="flex:1;color:var(--blue)" id="ms-edit">✏️ Edit Recipe</button>`+(custom?`
       <button class="btn btn-danger" style="flex:1" id="ms-del">🗑 Delete</button>`:(r._edited?`
       <button class="btn btn-secondary" style="flex:1" id="ms-revert">↩ Restore original</button>`:""))+`
