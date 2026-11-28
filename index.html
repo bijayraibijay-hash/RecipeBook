@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Recipes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#0C1117">
+<meta name="author" content="Bijay Kumar Rai">
 <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAEnklEQVR42u2dwXHjMAxFZc4ec8kp6cf9pBj3k35Sxt4ymdm1I1kk8D/w3jGTsQHwCaRkibq8vL5tAP9jUAJADkAOQA5ADkAOQA5ADkAOQA5ADgDkAOQA5ADkAOQA5ADkAOQA5ADkAEAOQA5ADkAOQA5ADkAOQA6oxp+2mX/drvv/+f3js2GJLk22YDikArrUl2O6EN1EKShHmBPlLSklR6IWJRWpIIeIE/Us8ZZDVosairjKYaGFuyIDM4i5SOdwLLFvCxmYQRbenaOGFnYtxECOdWbsHJ70AJAjYmCmDIZgSO3kmDUGS6tvEWQ1OaYUPaziXtF6y3Gy1olV9o3cQ44z9RUpboEUFOV4uqyCPblALoNqqp2m6lzUUekcz1XkpBY7vzTmWwSNl5Ajsnwpa0ZTP1zvPj9auFm9+vtzDgXw/vHJr7IRbePQqAQMydJ4cptHshzrihV8pK4LLNGPTDkWlUn/7nMXP2zu59A3I+z0p37nmP40otSKb3rAKT7lyLGiLvfOI379+8Th//mZBfxQn1a8btr+Ge2egRfPboi3DWu+bteJycbXbSib4fisx78xP05Z7bKNx7TyuGrK7WepH2Xl2D+ivmas9iMyd7Z9AgE5+rSNMs1j6NfU90zHffHB45BafnSUo9iPDlmNM9gwm87he+nMt3kMnXF9cNC4X1Q95IdO8+BUVmu+YEHaZUJxz2uIlKDDUnR/jiIzy+DwSvRDPLvhdUixRmHNAQ06x8m22eG2IOUS0TlAWA4WHLKV0e0crW41pXOAGXXe8XavCTNtKXaOPvNC1VlpaB7u3cS6l29u22PNAcgByAHIAcgByAGaGF8E23n6x+UWOgcgByAHIAcgByDHujOO8mj+ADniEwaXOjOtAHLAcXSvkDq+wMb3jV2inYPL27KVYVqBJDlONkz2ZcgtEZ0DtOVg2aFZE963QnZ5cli8m820bax2a3B4kRcLUpCU4/zMUq95nN+RN6Am1d4rSy5+crAs9VqK+q05ajQPoyyG16Hj7ofXq4aG4BFT1Y9ZZoRVgFNZ0JCjc/Owaxub71aTvu+4NzpHG1JlKunHRDOCUx5qxTr6UcqKzA0vPtMK71vR9GNPVLxvZe3kounHdDNSEhzK5Tvqh4IiO8PQN2PbtsvL65vylPFEjRJ79aIIO8qxtEzBiqwLLLEdJsuxulgBiiyNJ3eizJfjuSE8WrXplgQEkL6Ect1N8Ot2PVS7738+aclzA2Z6n4pE59iSHkGOubPG9+lqFTnOHF6yF0ndMxK6Qvp0RTSbdgHXhTrH+ZEWKWuBFETlyFozNo/cRo5ZM0VYrb2itZdj4kpiadEtgiwox4rF5pQxEAypqRxLT0bSf8kTv5nNQI6t6JNw+rc5eshRTBGele1b0zJZOHUO9xZiJ/egysRcqnN4tRDf2dBbDnFF3BdJFeRQs6TMJkSl5EhXpNjeZQXliLek6maYleVYKkqHTfu7yHFSl57vq+srB/wK2z4BcgByAHIAcgByAHIAcgByAHIAcgAgByAHIAcgByAHIAcgByAHIAcgBwByAHIAcgByAHIAcgBygCt/AeXXRG+0ZV5pAAAAAElFTkSuQmCC">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -210,6 +211,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .db-dot.err{background:var(--red);}
 
 .share-btn{background:none;border:1px solid var(--border);cursor:pointer;font-size:12px;padding:4px 10px;border-radius:6px;font-family:inherit;color:var(--green);}
+.ing-grid{grid-template-columns:1fr !important;}
+.ing-no{display:inline-block;min-width:20px;color:var(--text3);font-weight:700;font-size:12px;}
+.stp{font-size:10px;color:var(--text3);margin-left:6px;font-weight:600;white-space:nowrap;}
 /* ── Restaurants ── */
 .pbatch{width:54px !important;padding:5px 6px !important;font-size:12px !important;text-align:center;flex-shrink:0;}
 .prow{display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid var(--border);}
@@ -383,6 +387,7 @@ body.viewonly .add-btn,body.viewonly #bnav-add,body.viewonly .edit-btn,body.view
     <div class="logo">
       <div class="logo-title">Chef's Recipe Book</div>
       <div class="logo-sub" id="logo-sub">Loading recipes…</div>
+      <div class="logo-sub" style="margin-top:2px">Made by Bijay Kumar Rai</div>
     </div>
     <div class="search-wrap">
       <div class="search-box">
@@ -436,6 +441,7 @@ body.viewonly .add-btn,body.viewonly #bnav-add,body.viewonly .edit-btn,body.view
           <div class="section-label" id="grid-label">All Recipes</div>
           <div id="search-summary" style="display:none;font-size:12px;color:var(--text3);margin:-4px 0 12px;line-height:1.5"></div>
           <div class="recipe-grid wide" id="recipe-grid"></div>
+          <div id="made-by" style="text-align:center;font-size:12px;color:var(--text3);margin:22px 0 8px">Made by Bijay Kumar Rai</div>
           <div class="empty-state" id="empty" style="display:none">
             <div class="empty-icon">🍽️</div>
             <div class="empty-title">No recipes found</div>
@@ -1093,7 +1099,31 @@ function applyMain(){
   if(!amt||amt<=0){toast("Type how much you need");return;}
   setScale(amt*parseFloat(document.getElementById("main-unit").value)/mi.pick.p.base);
 }
-function scaleBarHtml(){return mainBarHtml()+scaleBarHtml0();}
+function totalInfo(r){
+  if(!r||!(r.ing||[]).length) return null;
+  const ys=String(r.yield_||""), y=parseQ(ys);
+  if(y&&(y.k==="m"||y.k==="v")&&y.base>=100&&!/[\/]|\dx/i.test(ys)) return {base:y.base,how:"yield",omitted:0};
+  let sum=0,used=0,omitted=0;
+  r.ing.forEach(([n,q])=>{ if(!/\d/.test(q||"")) return; const p=parseQ(q);
+    if(p&&(p.k==="m"||p.k==="v")){sum+=p.base;used++;}
+    else if(p&&/^(cups?|c)$/.test(p.u)){sum+=p.base*250;used++;}
+    else if(p&&/^(tbsp|tbs|tb|tablespoons?)$/.test(p.u)){sum+=p.base*20;used++;}
+    else if(p&&/^(tsp|ts|teaspoons?)$/.test(p.u)){sum+=p.base*5;used++;}
+    else omitted++; });
+  if(!used||sum<50) return null;
+  return {base:sum,how:"ingredients",omitted};
+}
+function fmtAmt(b){return b>=1000?(Math.round(b/10)/100)+" kg or L":Math.round(b)+" g or ml";}
+function totalBarHtml(){
+  const ti=totalInfo(curRecipe); if(!ti) return "";
+  return '<div class="scale-bar" style="border-color:var(--green)"><span class="scale-label">Total amount</span><span class="scale-label" style="margin-left:4px">I need</span>'
+   +'<input class="scale-input" id="tot-amt" type="number" min="0" step="any" placeholder="e.g. 5" onchange="applyTotal()">'
+   +'<select class="scale-input" id="tot-unit" style="width:auto" onchange="applyTotal()"><option value="1000">kg or L</option><option value="1">g or ml</option></select>'
+   +'<span class="unscaled" style="margin-left:auto">Now about '+fmtAmt(ti.base*(state.scale||1))+(ti.how==="yield"?" (from the yield)":" (adds up the ingredients"+(ti.omitted?", not counting "+ti.omitted+" counted items":"")+")")+'. 1 L is treated as 1 kg. Cooking changes the final amount.</span></div>';
+}
+function applyTotal(){const ti=totalInfo(curRecipe); if(!ti) return; const amt=parseFloat(document.getElementById("tot-amt").value);
+  if(!amt||amt<=0){toast("Type how much you need");return;} setScale(amt*parseFloat(document.getElementById("tot-unit").value)/ti.base);}
+function scaleBarHtml(){return mainBarHtml()+totalBarHtml()+scaleBarHtml0();}
 function scaleBarHtml0(){
   const s=state.scale||1;
   const presets=[[0.5,"½×"],[1,"1×"],[2,"2×"],[3,"3×"],[4,"4×"],[5,"5×"]];
@@ -1106,7 +1136,7 @@ function scaleBarHtml0(){
     +'</div>';
 }
 function setScale(v){
-  state.scale=Math.max(0.1,v||1);
+  state.scale=Math.max(0.01,v||1);
   if(document.getElementById("mobile-sheet").classList.contains("open")&&mobileRecipe) openMobileSheet(mobileRecipe,true);
   else update();
 }
@@ -1686,6 +1716,25 @@ document.getElementById("sh-file").onclick=()=>{const l=shChosen(); if(!l.length
   const dl=()=>{try{const u=URL.createObjectURL(new Blob([t],{type:"text/plain"})),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove();},1500);shMsg("File saved. Look in your Downloads or Files app.");}catch(e){shMsg("This view blocked saving a file. Use Share instead.");}};
   if(f&&navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:name}).then(()=>shMsg("File shared.")).catch(e=>{if(e&&e.name==="AbortError"){shMsg("Cancelled.");return;} dl();});return;}
   dl();};
+const ING_STOP=new Set("fresh ground crushed dried finely chopped large small white red green black whole extra virgin plain light brown dark sliced diced minced grated toasted roasted unsalted salted and or of the to for with cut into peeled pitted halved torn optional".split(" "));
+function nrm(t){return String(t).toLowerCase().replace(/[^a-zà-ÿ ]+/g," ").split(/\s+/).filter(Boolean).map(w=>w.length>3?w.replace(/(ies)$/,"y").replace(/(es|s)$/,""):w).join(" ");}
+function ingKeys(name){
+  const base=String(name).toLowerCase().replace(/^[a-z ]+: /,"").replace(/\(.*?\)/g,"").split(",")[0];
+  const n=nrm(base), words=n.split(" ").filter(w=>w.length>2), sig=words.filter(w=>!ING_STOP.has(w));
+  const keys=[n]; if(sig.length>1) keys.push(sig.join(" ")); sig.slice().reverse().forEach(w=>keys.push(w));
+  return [...new Set(keys)].filter(k=>k.length>2);
+}
+function ingPos(r){const steps=(r.method||[]).map(m=>" "+nrm(m)+" ");
+  return (r.ing||[]).map(([n])=>{for(const k of ingKeys(n)){for(let s=0;s<steps.length;s++){const i=steps[s].indexOf(" "+k+" "); if(i>=0) return {step:s+1,pos:s*100000+i};}} return null;});}
+function orderable(r){const L=r.ing||[]; if(L.length<3||!(r.method||[]).length) return false;
+  if(L.some(x=>/^[A-Za-z ]+: /.test(x[0]))) return false;
+  if(L.some(x=>/\((?:\d+ bases|large batch|small batch|base|filling|crumble|syrup|sauce|caramel|custard|fruit|bombe|parfait|1x|2x|4x)\)/i.test(x[0]))) return false; return true;}
+function autoOrder(r){ if(!orderable(r)) return; const P=ingPos(r), idx=r.ing.map((x,i)=>i);
+  idx.sort((a,b)=>{const pa=P[a],pb=P[b]; if(pa&&pb) return (pa.pos-pb.pos)||(a-b); if(pa) return -1; if(pb) return 1; return a-b;});
+  r.ing=idx.map(i=>r.ing[i]);}
+function stepTag(r,name){ if(!(r.method||[]).length) return ""; const steps=r.method.map(m=>" "+nrm(m)+" ");
+  for(const k of ingKeys(name)){for(let s=0;s<steps.length;s++){ if(steps[s].indexOf(" "+k+" ")>=0) return '<span class="stp">step '+(s+1)+'</span>'; }} return ""; }
+BUILTIN.forEach(autoOrder);
 function filtered(){return filteredBase().filter(passesFilters).filter(passesCourse);}
 function filteredBase(){
   if(state.search){
@@ -1804,7 +1853,7 @@ function renderDetail(r){
 
   const ingHtml=r.ing?.length?`
     <div class="section-head"><div class="section-bar" style="background:${color}"></div><div class="section-head-title">Ingredients</div></div>
-    ${scaleBarHtml()}<div class="ing-grid">${r.ing.map(([n,q])=>`<div class="ing-row"><span class="ing-name">${n}</span><span class="ing-qty" style="color:${color}">${scaleQty(q)}</span></div>`).join("")}</div>`:"";
+    ${scaleBarHtml()}<div class="ing-grid">${r.ing.map(([n,q],i)=>`<div class="ing-row"><span class="ing-name"><b class="ing-no">${i+1}</b> ${n}${stepTag(r,n)}</span><span class="ing-qty" style="color:${color}">${scaleQty(q)}</span></div>`).join("")}</div>`:"";
 
   const scalerHtml=r.scaler?`
     <div class="section-head" style="margin-top:22px"><div class="section-bar" style="background:#60A5FA"></div><div class="section-head-title">Portion Scaler</div></div>
@@ -2212,9 +2261,9 @@ function openMobileSheet(r,keep){
   const ingHtml = r.ing?.length ? `
     <div class="section-head" style="margin-top:0"><div class="section-bar" style="background:${color}"></div><div class="section-head-title">Ingredients</div></div>${scaleBarHtml()}
     <div style="display:flex;flex-direction:column;gap:5px;">
-      ${r.ing.map(([n,q])=>`
+      ${r.ing.map(([n,q],i)=>`
         <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-radius:10px;background:var(--surface2);">
-          <span style="font-size:14px;color:var(--text2)">${n}</span>
+          <span style="font-size:14px;color:var(--text2)"><b class="ing-no">${i+1}</b> ${n}${stepTag(r,n)}</span>
           <span style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${color};white-space:nowrap;margin-left:12px">${scaleQty(q)}</span>
         </div>`).join("")}
     </div>` : "";
